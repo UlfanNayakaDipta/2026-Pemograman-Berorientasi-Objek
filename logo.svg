@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 40">
-  <style>
-    .core { font-family: sans-serif; font-weight: 900; font-size: 24px; }
-    .doc { font-family: sans-serif; font-weight: 900; font-size: 24px; fill: #06b4d4; }
-    @media (prefers-color-scheme: dark) { .core { fill: #e2e8f0; } }
-    @media (prefers-color-scheme: light) { .core { fill: #0f172a; } }
-  </style>
-  <text x="0" y="28"><tspan class="core">Core</tspan><tspan class="doc">Doc</tspan></text>
-</svg>
