@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title or "CoreDoc" }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+      }
+      
+      // On page load or when changing themes
+      if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark')
+      } else {
+        document.documentElement.classList.remove('dark')
+      }
+    </script>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      .dark {
+        color-scheme: dark;
+      }
+
+      body {
+        background:
+          radial-gradient(circle at top left, rgba(56, 189, 248, 0.08), transparent 30%),
+          radial-gradient(circle at bottom right, rgba(148, 163, 184, 0.08), transparent 28%),
+          #f8fafc;
+      }
+      .dark body {
+        background:
+          radial-gradient(circle at top left, rgba(56, 189, 248, 0.08), transparent 30%),
+          radial-gradient(circle at bottom right, rgba(148, 163, 184, 0.08), transparent 28%),
+          #020617;
+      }
+
+      .surface-grid {
+        background-image:
+          linear-gradient(rgba(148, 163, 184, 0.1) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(148, 163, 184, 0.1) 1px, transparent 1px);
+        background-size: 24px 24px;
+      }
+      .dark .surface-grid {
+        background-image:
+          linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+      }
+    </style>
+  </head>
+  <body class="min-h-screen text-slate-900 dark:text-slate-100 transition-colors">
+    <div class="surface-grid min-h-screen flex flex-col">
+      
+      <!-- Top Navigation Bar -->
+      <nav class="sticky top-0 z-50 w-full border-b border-slate-300 dark:border-slate-800 bg-white/95 dark:bg-slate-950/95 backdrop-blur transition-colors">
+        <div class="flex h-16 w-full items-center justify-between px-6 lg:px-10">
+          <!-- Logo Section -->
+          <div class="flex items-center">
+            <span class="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 mr-8">CoreDoc</span>
+            
+            <!-- Navigation Links -->
+            <div class="hidden sm:flex space-x-2 lg:space-x-4">
+              <a href="{{ url_for('word_pdf.index') }}" class="px-3 py-2 rounded-md text-sm transition {% if request.endpoint == 'word_pdf.index' %}bg-slate-100 dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 font-semibold{% else %}font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800{% endif %}">
+                Word to PDF
+              </a>
+              <a href="{{ url_for('pdf_word.index') }}" class="px-3 py-2 rounded-md text-sm transition {% if request.endpoint == 'pdf_word.index' %}bg-slate-100 dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 font-semibold{% else %}font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800{% endif %}">
+                PDF to Word
+              </a>
+              <a href="{{ url_for('ocr.index') }}" class="px-3 py-2 rounded-md text-sm transition {% if request.endpoint == 'ocr.index' %}bg-slate-100 dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 font-semibold{% else %}font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800{% endif %}">
+                Smart OCR
+              </a>
+              <div class="border-l border-slate-300 dark:border-slate-700 mx-2"></div>
+              <a href="{{ url_for('history.index') }}" class="px-3 py-2 rounded-md text-sm transition {% if request.endpoint == 'history.index' %}bg-slate-100 dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 font-semibold{% else %}font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800{% endif %}">
+                History
+              </a>
+            </div>
+          </div>
+
+          <!-- Right Section (Profile & Hamburger) -->
+          <div class="flex items-center gap-2 sm:gap-4">
+            
+            <!-- Hamburger Button (Mobile Only) -->
+            <button id="mobile-menu-btn" class="sm:hidden flex h-10 w-10 items-center justify-center rounded-md text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800 focus:outline-none transition-colors">
+              <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+              </svg>
+            </button>
+
+            <!-- Profile & Settings Dropdown -->
+            <div class="relative">
+              <button id="profile-btn" class="flex h-10 w-10 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition">
+                <svg class="h-6 w-6 text-slate-500 dark:text-slate-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+              </button>
+
+              <!-- Dropdown Menu (Hidden by default) -->
+              <div id="profile-dropdown" class="absolute right-0 mt-2 hidden w-48 origin-top-right rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none transition-colors z-50">
+                <div class="py-1">
+                  <div class="block px-4 py-2 text-xs uppercase tracking-widest text-slate-400 dark:text-slate-500 font-semibold border-b border-slate-100 dark:border-slate-800">
+                    Settings
+                  </div>
+                  <button id="theme-toggle" class="flex w-full items-center px-4 py-3 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-left">
+                    <svg class="mr-3 h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                    </svg>
+                    Toggle Theme
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile Navigation Menu (Hidden by default) -->
+        <div id="mobile-menu" class="hidden sm:hidden border-t border-slate-200 dark:border-slate-800 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-md px-4 py-3 space-y-2 transition-all">
+          <a href="{{ url_for('word_pdf.index') }}" class="block px-3 py-2.5 rounded-md text-base transition-colors {% if request.endpoint == 'word_pdf.index' %}bg-slate-200 dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 font-semibold{% else %}font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800{% endif %}">Word to PDF</a>
+          <a href="{{ url_for('pdf_word.index') }}" class="block px-3 py-2.5 rounded-md text-base transition-colors {% if request.endpoint == 'pdf_word.index' %}bg-slate-200 dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 font-semibold{% else %}font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800{% endif %}">PDF to Word</a>
+          <a href="{{ url_for('ocr.index') }}" class="block px-3 py-2.5 rounded-md text-base transition-colors {% if request.endpoint == 'ocr.index' %}bg-slate-200 dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 font-semibold{% else %}font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800{% endif %}">Smart OCR</a>
+          <a href="{{ url_for('history.index') }}" class="block px-3 py-2.5 rounded-md text-base transition-colors {% if request.endpoint == 'history.index' %}bg-slate-200 dark:bg-slate-800 text-cyan-600 dark:text-cyan-400 font-semibold{% else %}font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800{% endif %}">History</a>
+        </div>
+      </nav>
+
+      <!-- Main Content Area -->
+      <main class="mx-auto flex w-full max-w-6xl flex-col flex-1 px-4 py-8 sm:px-6 lg:px-8">
+        
+        <section class="flex-1 border border-slate-300 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 p-5 shadow-2xl shadow-slate-200/30 dark:shadow-slate-950/30 sm:p-8 transition-colors">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              <div class="mb-6 space-y-3">
+                {% for category, message in messages %}
+                  <div class="border px-4 py-3 text-sm {% if category == 'error' %}border-rose-300 dark:border-rose-900 bg-rose-50 dark:bg-rose-950/70 text-rose-800 dark:text-rose-200{% else %}border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200{% endif %}">
+                    {{ message }}
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endwith %}
+
+          {% block content %}{% endblock %}
+        </section>
+      </main>
+    </div>
+
+    <!-- Global Error Modal -->
+    <div id="error-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm transition-opacity duration-300 opacity-0">
+      <div id="error-modal-box" class="w-full max-w-md transform overflow-hidden border-2 border-rose-500/20 dark:border-rose-500/30 bg-white dark:bg-slate-900 p-6 shadow-2xl transition-all duration-300 scale-95 opacity-0 translate-y-4">
+        <div class="flex items-center gap-4">
+          <div class="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-900/30 relative">
+            <div class="absolute inset-0 rounded-full bg-rose-400 opacity-20 animate-ping"></div>
+            <svg class="h-6 w-6 text-rose-600 dark:text-rose-400 relative z-10" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-medium text-slate-900 dark:text-slate-100">Invalid File Uploaded</h3>
+            <p id="error-modal-message" class="mt-2 text-sm text-slate-500 dark:text-slate-400 leading-relaxed"></p>
+          </div>
+        </div>
+        <div class="mt-6 flex justify-end">
+          <button id="close-error-modal" type="button" class="inline-flex justify-center border border-transparent bg-rose-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-rose-600 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 transition-colors shadow-sm">
+            Got it, thanks!
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Mobile Menu Toggle logic
+      const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+      const mobileMenu = document.getElementById('mobile-menu');
+      
+      mobileMenuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+      });
+
+      // Profile Dropdown Toggle logic
+      const profileBtn = document.getElementById('profile-btn');
+      const profileDropdown = document.getElementById('profile-dropdown');
+      
+      profileBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        profileDropdown.classList.toggle('hidden');
+      });
+
+      // Close dropdowns when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!profileDropdown.contains(e.target) && !profileBtn.contains(e.target)) {
+          profileDropdown.classList.add('hidden');
+        }
+        if (!mobileMenu.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+          mobileMenu.classList.add('hidden');
+        }
+      });
+
+      // Theme Toggle logic
+      const themeToggleBtn = document.getElementById('theme-toggle');
+      themeToggleBtn.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        if (document.documentElement.classList.contains('dark')) {
+          localStorage.setItem('theme', 'dark');
+        } else {
+          localStorage.setItem('theme', 'light');
+        }
+      });
+
+      // Global Error Modal logic
+      const errorModal = document.getElementById('error-modal');
+      const errorModalBox = document.getElementById('error-modal-box');
+      const errorModalMessage = document.getElementById('error-modal-message');
+      const closeErrorModal = document.getElementById('close-error-modal');
+
+      function showErrorModal(message) {
+        errorModalMessage.textContent = message;
+        
+        // Show container
+        errorModal.classList.remove('hidden');
+        errorModal.classList.add('flex');
+        
+        // Trigger animations after a tiny delay
+        setTimeout(() => {
+          errorModal.classList.remove('opacity-0');
+          errorModal.classList.add('opacity-100');
+          
+          errorModalBox.classList.remove('scale-95', 'opacity-0', 'translate-y-4');
+          errorModalBox.classList.add('scale-100', 'opacity-100', 'translate-y-0');
+        }, 10);
+      }
+
+      closeErrorModal.addEventListener('click', () => {
+        // Reverse animations
+        errorModal.classList.remove('opacity-100');
+        errorModal.classList.add('opacity-0');
+        
+        errorModalBox.classList.remove('scale-100', 'opacity-100', 'translate-y-0');
+        errorModalBox.classList.add('scale-95', 'opacity-0', 'translate-y-4');
+        
+        // Hide container after transition finishes
+        setTimeout(() => {
+          errorModal.classList.remove('flex');
+          errorModal.classList.add('hidden');
+        }, 300);
+      });
+    </script>
+  </body>
+</html>
