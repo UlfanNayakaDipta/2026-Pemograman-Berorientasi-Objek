@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import uuid
 import json
-from dataclasses import dataclass
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Final
 
@@ -22,16 +20,7 @@ history_model = HistoryModel()
 ALLOWED_EXTENSIONS: Final[set[str]] = {".pdf"}
 
 
-@dataclass(frozen=True)
-class ConversionRecord:
-    source_path: Path
-    docx_path: Path
-    original_filename: str
-    download_filename: str
-    created_at: datetime
 
-
-conversion_store: dict[str, ConversionRecord] = {}
 
 
 def is_allowed_pdf_file(filename: str) -> bool:
@@ -52,7 +41,7 @@ def save_uploaded_file(uploaded_file: FileStorage) -> tuple[str, Path]:
         raise ValueError("The uploaded file name is invalid.")
 
     upload_id = uuid.uuid4().hex
-    saved_path = UPLOAD_DIR / f"{upload_id}_{safe_name}"
+    saved_path = UPLOAD_DIR / f"{upload_id}{Path(safe_name).suffix}"
     uploaded_file.save(saved_path)
     return safe_name, saved_path
 
@@ -110,21 +99,20 @@ def convert_pdf_to_word():
 
         cleanup_file(source_path)
 
-        conversion_id = uuid.uuid4().hex
         download_filename = build_download_filename(original_filename)
-        conversion_store[conversion_id] = ConversionRecord(
-            source_path=source_path,
-            docx_path=conversion_result.output_path,
-            original_filename=original_filename,
-            download_filename=download_filename,
-            created_at=datetime.now(timezone.utc),
-        )
+        # Rename output to match download name so history/batch finds it
+        real_path = conversion_result.output_path
+        desired_path = real_path.with_name(download_filename)
+        if real_path != desired_path:
+            if desired_path.exists():
+                desired_path.unlink()
+            real_path.rename(desired_path)
         downloadable_filenames.append(download_filename)
         conversions.append({
-            "id": conversion_id,
+            "id": download_filename,
             "original": original_filename,
             "result": download_filename,
-            "download_url": url_for("pdf_word.download_converted_docx", conversion_id=conversion_id)
+            "download_url": url_for("pdf_word.download_converted_docx", filename=download_filename)
         })
 
     if conversions:
@@ -156,23 +144,19 @@ def convert_pdf_to_word():
     )
 
 
-@pdf_word_bp.route("/download/<conversion_id>", methods=["GET"])
-def download_converted_docx(conversion_id: str):
-    record = conversion_store.get(conversion_id)
-    if record is None or not record.docx_path.exists():
-        return (
-            render_template(
-                "error.html",
-                title="File Missing",
-                message="The converted Word document is no longer available. Please convert the file again.",
-                back_url=url_for("pdf_word.index"),
-            ),
-            404,
-        )
+@pdf_word_bp.route("/download/<filename>", methods=["GET"])
+def download_converted_docx(filename: str):
+    safe_name = secure_filename(filename)
+    if not safe_name.startswith("CoreDoc_"):
+        return render_template("error.html", title="Invalid File", message="Invalid filename.", back_url=url_for("pdf_word.index")), 404
+
+    file_path = CONVERTED_DIR / safe_name
+    if not file_path.exists():
+        return render_template("error.html", title="File Missing", message="The converted document is no longer available. Please convert the file again.", back_url=url_for("pdf_word.index")), 404
 
     return send_file(
-        record.docx_path,
+        file_path,
         as_attachment=True,
-        download_name=record.download_filename,
+        download_name=safe_name,
         mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     )
