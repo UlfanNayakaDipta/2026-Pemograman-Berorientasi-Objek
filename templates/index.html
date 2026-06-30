@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-8 mt-2">
+  <h1 class="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">Word to PDF Converter
+  </h1>
+  <p class="mt-3 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-400">
+    Local document conversion with a clean interface, clear state transitions, and headless processing.
+  </p>
+</div>
+<div class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+  <div class="space-y-6">
+    <section
+      class="border border-slate-300 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/70 p-6 transition-colors">
+      <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Upload Phase</p>
+      <h2 class="mt-3 text-2xl font-semibold text-slate-900 dark:text-slate-100">Choose a Word document</h2>
+      <p class="mt-3 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-400">
+        Upload a .doc or .docx file and convert it locally through headless processing. The converted PDF stays on the server
+        until you download it.
+      </p>
+    </section>
+
+    <form action="{{ url_for('word_pdf.convert_word_to_pdf') }}" method="post" enctype="multipart/form-data"
+      class="border border-slate-300 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/70 p-6 transition-colors">
+      <label for="document" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Word File</label>
+      <input id="document" name="document" type="file" accept=".doc,.docx" multiple required
+        class="mt-3 block w-full cursor-pointer rounded-none border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 file:mr-4 file:cursor-pointer file:border-0 file:bg-cyan-500 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-950 hover:border-slate-400 dark:hover:border-slate-500 focus:outline-none transition-colors">
+      <p id="file-name" class="mt-3 text-xs uppercase tracking-[0.25em] text-slate-500">Accepted types: .doc, .docx |
+        Max size: 25 MB</p>
+      <button type="submit" id="submit-btn"
+        class="mt-6 inline-flex items-center justify-center rounded-none border border-cyan-400 bg-cyan-500 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed">
+        Convert to PDF
+      </button>
+    </form>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('document');
+    const fileNameDisplay = document.getElementById('file-name');
+    const submitBtn = document.getElementById('submit-btn');
+
+    fileInput.addEventListener('change', function () {
+      if (this.files && this.files.length > 0) {
+        const allowedExtensions = ['doc', 'docx'];
+        let allValid = true;
+
+        for (let i = 0; i < this.files.length; i++) {
+          const ext = this.files[i].name.split('.').pop().toLowerCase();
+          if (!allowedExtensions.includes(ext)) {
+            allValid = false;
+            break;
+          }
+        }
+
+        if (!allValid) {
+          showErrorModal('Format tidak didukung! Tolong masukkan hanya file Microsoft Word (.doc, .docx)');
+          this.value = ''; // clear the input
+          submitBtn.disabled = true;
+          fileNameDisplay.innerHTML = `<span class="text-rose-500 font-medium">Invalid files selected</span>`;
+        } else {
+          submitBtn.disabled = false;
+
+          if (this.files.length === 1) {
+            fileNameDisplay.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400 font-medium">${this.files[0].name}</span> ready to convert`;
+          } else {
+            fileNameDisplay.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400 font-medium">${this.files.length} files</span> ready to convert`;
+          }
+        }
+      }
+    });
+
+    const form = document.querySelector('form');
+    if (form) {
+      form.addEventListener('submit', function () {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-slate-950" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Converting...
+          `;
+      });
+    }
+  </script>
+
+  <aside
+    class="border border-slate-300 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/70 p-6 transition-colors">
+    <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Processing Phase</p>
+    <div class="mt-4 space-y-4 text-sm leading-6 text-slate-600 dark:text-slate-400">
+      <div class="border border-slate-300 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 p-4 transition-colors">
+        <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Pilih satu atau beberapa dokumen (.doc, .docx)</p>
+      </div>
+      <div class="border border-slate-300 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 p-4 transition-colors">
+        <h3 class="font-semibold text-slate-900 dark:text-slate-100">1. Validation</h3>
+        <p class="mt-2">The server verifies the file type, name, and size before conversion begins.</p>
+      </div>
+      <div class="border border-slate-300 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 p-4 transition-colors">
+        <h3 class="font-semibold text-slate-900 dark:text-slate-100">2. Conversion</h3>
+        <p class="mt-2">LibreOffice runs headlessly through subprocess, so the app does not depend on Microsoft Word.
+        </p>
+      </div>
+      <div class="border border-slate-300 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 p-4 transition-colors">
+        <h3 class="font-semibold text-slate-900 dark:text-slate-100">3. Result</h3>
+        <p class="mt-2">A result page appears with a download action and a reset action for the next file.</p>
+      </div>
+    </div>
+  </aside>
+</div>
+{% endblock %}
