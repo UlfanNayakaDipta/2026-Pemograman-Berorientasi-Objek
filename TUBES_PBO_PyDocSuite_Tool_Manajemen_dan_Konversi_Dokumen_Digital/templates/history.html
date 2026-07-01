@@ -54,7 +54,7 @@
             </td>
             <td class="px-3 py-4 text-sm text-slate-600 dark:text-slate-400">
               {% if record.result_data.startswith("[") %}
-                <button type="button" onclick='openBatchModal({{ record.result_data | safe }})' class="inline-flex items-center gap-1 text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium transition-colors">
+                <button type="button" onclick="openBatchModal(JSON.parse(this.getAttribute('data-batch')))" data-batch="{{ record.result_data | e }}" class="inline-flex items-center gap-1 text-emerald-600 hover:text-emerald-500 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium transition-colors">
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0A2.25 2.25 0 001.5 12v4.5c0 1.242 1.008 2.25 2.25 2.25h16.5A2.25 2.25 0 0022.5 16.5V12a2.25 2.25 0 00-1.5-2.224m-16.5 0c.232-.38.56-.708.966-.932a2.25 2.25 0 011.082-.268h11.904c.407 0 .783.106 1.082.268.406.224.734.552.966.932M9 7.5v-3a1.5 1.5 0 011.5-1.5h3a1.5 1.5 0 011.5 1.5v3M12 15.75v.01" />
                   </svg>
