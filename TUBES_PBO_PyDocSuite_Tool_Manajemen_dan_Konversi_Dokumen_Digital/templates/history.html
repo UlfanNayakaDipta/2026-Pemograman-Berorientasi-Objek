@@ -1,11 +1,23 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="mb-8 mt-2">
-    <h1 class="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">Activity History</h1>
-    <p class="mt-3 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-400">
-      Track all your offline conversions and extractions here. All records are securely stored locally in an SQLite database.
-    </p>
+  <div class="mb-8 mt-2 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">Activity History</h1>
+      <p class="mt-3 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-400">
+        Track all your offline conversions and extractions here. All records are securely stored locally in an SQLite database.
+      </p>
+    </div>
+    {% if records %}
+    <form id="clear-all-form" action="{{ url_for('history.clear_history') }}" method="post">
+      <button type="button" onclick="openConfirmModal('Are you sure you want to clear all history? This will also delete all converted files.', 'clear-all-form')" class="inline-flex items-center justify-center rounded-lg border border-rose-300 dark:border-rose-700 bg-rose-50 dark:bg-rose-900/20 px-4 py-2 text-sm font-semibold text-rose-700 dark:text-rose-300 transition hover:bg-rose-100 dark:hover:bg-rose-900/40">
+        <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+        </svg>
+        Clear All History
+      </button>
+    </form>
+    {% endif %}
   </div>
 
   <div class="mt-6 rounded-2xl border border-slate-300 dark:border-slate-800 bg-white/70 dark:bg-slate-950/70 overflow-hidden transition-colors shadow-sm">
@@ -17,6 +29,7 @@
             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-slate-200">Activity</th>
             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-slate-200">Original File</th>
             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 dark:text-slate-200">Result</th>
+            <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-slate-900 dark:text-slate-200">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-200 dark:divide-slate-800 bg-transparent">
@@ -63,10 +76,19 @@
                 </button>
               {% endif %}
             </td>
+            <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+              <form id="delete-form-{{ record.id }}" action="{{ url_for('history.delete_record', record_id=record.id) }}" method="post" class="inline">
+                <button type="button" onclick="openConfirmModal('Delete this record? This cannot be undone.', 'delete-form-{{ record.id }}')" class="text-rose-500 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 transition-colors" title="Delete record">
+                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                  </svg>
+                </button>
+              </form>
+            </td>
           </tr>
           {% else %}
           <tr>
-            <td colspan="4" class="py-8 text-center text-sm text-slate-500 dark:text-slate-400 italic">
+            <td colspan="5" class="py-8 text-center text-sm text-slate-500 dark:text-slate-400 italic">
               No history records found. Try converting some files!
             </td>
           </tr>
@@ -87,6 +109,9 @@
       </div>
       <div id="batch-file-list" class="max-h-60 overflow-y-auto space-y-2 pr-2">
       </div>
+      <div class="mt-4 flex justify-end">
+        <button id="download-all-batch-btn" class="bg-cyan-600 hover:bg-cyan-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">Download All</button>
+      </div>
     </div>
   </div>
 
@@ -106,15 +131,60 @@
     </div>
   </div>
 
+  <!-- Confirm Modal -->
+  <div id="confirm-modal" class="fixed inset-0 z-[110] hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm transition-opacity">
+    <div class="w-full max-w-sm transform overflow-hidden rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 shadow-2xl transition-all">
+      <div class="flex items-center gap-4 mb-4">
+        <div class="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">
+          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium text-slate-900 dark:text-slate-100">Confirm Action</h3>
+      </div>
+      <p id="confirm-modal-message" class="text-sm text-slate-600 dark:text-slate-400 mb-6"></p>
+      <div class="flex justify-end gap-3">
+        <button id="cancel-confirm-btn" class="px-4 py-2 rounded-lg text-sm font-medium border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">Cancel</button>
+        <button id="ok-confirm-btn" class="px-4 py-2 rounded-lg text-sm font-medium bg-rose-600 hover:bg-rose-700 text-white transition-colors">Confirm</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const batchModal = document.getElementById('batch-modal');
     const closeBatchModal = document.getElementById('close-batch-modal');
     const batchFileList = document.getElementById('batch-file-list');
+    const downloadAllBatchBtn = document.getElementById('download-all-batch-btn');
 
     const textModal = document.getElementById('text-modal');
     const closeTextModal = document.getElementById('close-text-modal');
     const textModalContent = document.getElementById('text-modal-content');
     const copyTextBtn = document.getElementById('copy-text-btn');
+
+    const confirmModal = document.getElementById('confirm-modal');
+    const confirmModalMessage = document.getElementById('confirm-modal-message');
+    const cancelConfirmBtn = document.getElementById('cancel-confirm-btn');
+    const okConfirmBtn = document.getElementById('ok-confirm-btn');
+    let currentFormIdToSubmit = null;
+
+    function openConfirmModal(message, formId) {
+      confirmModalMessage.innerText = message;
+      currentFormIdToSubmit = formId;
+      confirmModal.classList.remove('hidden');
+      confirmModal.classList.add('flex');
+    }
+
+    cancelConfirmBtn.addEventListener('click', () => {
+      confirmModal.classList.add('hidden');
+      confirmModal.classList.remove('flex');
+      currentFormIdToSubmit = null;
+    });
+
+    okConfirmBtn.addEventListener('click', () => {
+      if (currentFormIdToSubmit) {
+        document.getElementById(currentFormIdToSubmit).submit();
+      }
+    });
 
     function openTextModal(text) {
       textModalContent.value = text;
@@ -155,6 +225,22 @@
     closeBatchModal.addEventListener('click', () => {
       batchModal.classList.add('hidden');
       batchModal.classList.remove('flex');
+    });
+
+    downloadAllBatchBtn.addEventListener('click', () => {
+      const links = batchFileList.querySelectorAll('a');
+      let delay = 0;
+      links.forEach(link => {
+        setTimeout(() => {
+          const a = document.createElement('a');
+          a.href = link.href;
+          a.download = '';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }, delay);
+        delay += 500; // staggered download
+      });
     });
   </script>
 {% endblock %}

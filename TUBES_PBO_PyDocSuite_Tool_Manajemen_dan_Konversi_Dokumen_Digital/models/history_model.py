@@ -150,3 +150,39 @@ class HistoryModel:
             # 2. Clear database table
             cursor.execute("DELETE FROM history_records")
             conn.commit()
+
+    def delete_record(self, record_id: int) -> None:
+        """
+        Deletes a specific history record and its associated physical file(s).
+        """
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            
+            # Fetch to know which physical files to delete
+            cursor.execute("SELECT result_data FROM history_records WHERE id = ?", (record_id,))
+            row = cursor.fetchone()
+            
+            if row:
+                r_data = row[0]
+                files_to_delete = []
+                if r_data.startswith("CoreDoc_"):
+                    files_to_delete.append(r_data)
+                elif r_data.startswith("["):
+                    import json
+                    try:
+                        files_to_delete.extend(json.loads(r_data))
+                    except Exception:
+                        pass
+                        
+                for f_name in files_to_delete:
+                    if isinstance(f_name, str) and f_name.startswith("CoreDoc_"):
+                        file_path = CONVERTED_DIR / f_name
+                        try:
+                            if file_path.exists():
+                                file_path.unlink()
+                        except OSError:
+                            pass
+                
+                # Delete from database
+                cursor.execute("DELETE FROM history_records WHERE id = ?", (record_id,))
+                conn.commit()
