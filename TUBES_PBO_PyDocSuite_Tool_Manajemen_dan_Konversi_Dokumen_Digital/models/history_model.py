@@ -71,6 +71,8 @@ class HistoryModel:
             excess_records = cursor.fetchall()
             
             if excess_records:
+                excess_ids = [row[0] for row in excess_records]
+                
                 for row_id, r_data in excess_records:
                     # Clean up the physical file to save disk space
                     files_to_delete = []
@@ -85,6 +87,13 @@ class HistoryModel:
                             
                     for f_name in files_to_delete:
                         if isinstance(f_name, str) and f_name.startswith("CoreDoc_"):
+                            # Check if other records still reference this file
+                            placeholders = ",".join("?" for _ in excess_ids)
+                            query = f"SELECT COUNT(*) FROM history_records WHERE id NOT IN ({placeholders}) AND result_data LIKE ?"
+                            cursor.execute(query, excess_ids + [f"%{f_name}%"])
+                            if cursor.fetchone()[0] > 0:
+                                continue # Still in use by another record
+                                
                             file_path = CONVERTED_DIR / f_name
                             try:
                                 if file_path.exists():
@@ -93,7 +102,6 @@ class HistoryModel:
                                 pass
                 
                 # Delete excess records from the database
-                excess_ids = [row[0] for row in excess_records]
                 placeholders = ",".join("?" for _ in excess_ids)
                 cursor.execute(f"DELETE FROM history_records WHERE id IN ({placeholders})", excess_ids)
 
@@ -175,13 +183,18 @@ class HistoryModel:
                         pass
                         
                 for f_name in files_to_delete:
-                    if isinstance(f_name, str) and f_name.startswith("CoreDoc_"):
-                        file_path = CONVERTED_DIR / f_name
-                        try:
-                            if file_path.exists():
-                                file_path.unlink()
-                        except OSError:
-                            pass
+                        if isinstance(f_name, str) and f_name.startswith("CoreDoc_"):
+                            # Check if other records still reference this file
+                            cursor.execute("SELECT COUNT(*) FROM history_records WHERE id != ? AND result_data LIKE ?", (record_id, f"%{f_name}%"))
+                            if cursor.fetchone()[0] > 0:
+                                continue # Still in use
+                            
+                            file_path = CONVERTED_DIR / f_name
+                            try:
+                                if file_path.exists():
+                                    file_path.unlink()
+                            except OSError:
+                                pass
                 
                 # Delete from database
                 cursor.execute("DELETE FROM history_records WHERE id = ?", (record_id,))

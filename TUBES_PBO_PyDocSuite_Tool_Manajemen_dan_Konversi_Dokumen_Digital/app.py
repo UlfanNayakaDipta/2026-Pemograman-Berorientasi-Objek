@@ -26,10 +26,7 @@ def create_app() -> Flask:
     
     @app.route("/")
     def index():
-        # Home page can just redirect to word-to-pdf or show a landing page
-        # Since word-to-pdf has index.html as the landing, we'll route it there.
-        from flask import redirect, url_for
-        return redirect(url_for("word_pdf.index"))
+        return render_template("home.html", title="CoreDoc | All-in-One Local Document Tool")
         
     return app
 

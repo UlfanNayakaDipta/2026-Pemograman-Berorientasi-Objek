@@ -73,47 +73,59 @@ def convert_pdf_to_word():
             flash(f"Only .pdf files are supported. File '{f.filename}' is invalid.", "error")
             return render_template("pdf_word.html", title="PyDocSuite | PDF to Word Converter"), 400
 
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+
     conversions = []
     failed_files = []
     downloadable_filenames = []
 
+    tasks = []
     for uploaded_file in uploaded_files:
         if not isinstance(uploaded_file.filename, str) or not uploaded_file.filename.strip():
             continue
             
         try:
             original_filename, source_path = save_uploaded_file(uploaded_file)
+            tasks.append((original_filename, source_path))
         except OSError:
             failed_files.append((uploaded_file.filename, "Upload Failed on Server"))
-            continue
         except ValueError as exc:
             failed_files.append((uploaded_file.filename, str(exc)))
-            continue
 
+    def _convert_task(orig_name, src_path):
         try:
-            conversion_result = converter.convert(source_path, CONVERTED_DIR)
-        except PdfToWordConversionError as exc:
-            cleanup_file(source_path)
-            failed_files.append((original_filename, str(exc)))
-            continue
+            conversion_result = converter.convert(src_path, CONVERTED_DIR)
+            return True, orig_name, src_path, conversion_result, None
+        except Exception as e:
+            return False, orig_name, src_path, None, str(e)
 
-        cleanup_file(source_path)
+    if tasks:
+        # Gunakan maksimal 4 worker agar tidak membuat CPU kepanasan atau lag
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = [executor.submit(_convert_task, t[0], t[1]) for t in tasks]
+            for future in as_completed(futures):
+                success, orig_name, src_path, conv_result, err_msg = future.result()
+                cleanup_file(src_path)
 
-        download_filename = build_download_filename(original_filename)
-        # Rename output to match download name so history/batch finds it
-        real_path = conversion_result.output_path
-        desired_path = real_path.with_name(download_filename)
-        if real_path != desired_path:
-            if desired_path.exists():
-                desired_path.unlink()
-            real_path.rename(desired_path)
-        downloadable_filenames.append(download_filename)
-        conversions.append({
-            "id": download_filename,
-            "original": original_filename,
-            "result": download_filename,
-            "download_url": url_for("pdf_word.download_converted_docx", filename=download_filename)
-        })
+                if success:
+                    download_filename = build_download_filename(orig_name)
+                    # Rename output to match download name so history/batch finds it
+                    real_path = conv_result.output_path
+                    desired_path = real_path.with_name(download_filename)
+                    if real_path != desired_path:
+                        if desired_path.exists():
+                            desired_path.unlink()
+                        real_path.rename(desired_path)
+                    
+                    downloadable_filenames.append(download_filename)
+                    conversions.append({
+                        "id": download_filename,
+                        "original": orig_name,
+                        "result": download_filename,
+                        "download_url": url_for("pdf_word.download_converted_docx", filename=download_filename)
+                    })
+                else:
+                    failed_files.append((orig_name, err_msg))
 
     if conversions:
         if len(conversions) == 1:

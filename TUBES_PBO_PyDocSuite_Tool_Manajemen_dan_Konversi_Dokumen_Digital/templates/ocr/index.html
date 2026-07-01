@@ -1,94 +1,118 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="mb-8 mt-2">
-    <h1 class="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">Smart OCR (Image-to-Text)</h1>
-    <p class="mt-3 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-400">
-      Extract text from images locally using Tesseract OCR.
-    </p>
-  </div>
-  
-  <div class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-    <div class="space-y-6">
-      <section class="rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/70 p-6 transition-colors">
-        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Upload Phase</p>
-        <h2 class="mt-3 text-2xl font-semibold text-slate-900 dark:text-slate-100">Choose an Image</h2>
-        <p class="mt-3 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-400">
-          Upload a .png, .jpg, or .jpeg file to extract text from it.
-        </p>
-      </section>
+<div class="mb-10 mt-4 text-center">
+  <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 sm:text-5xl">Smart OCR (Image-to-Text)</h1>
+  <p class="mt-4 mx-auto max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-400">
+    Extract text from images locally using Tesseract OCR.
+  </p>
+</div>
 
-      <form action="{{ url_for('ocr.extract_text') }}" method="post" enctype="multipart/form-data" class="rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/70 p-6 transition-colors">
-        <label for="image" class="block text-sm font-medium text-slate-700 dark:text-slate-200">Image File</label>
-        <input
-          id="image"
-          name="image"
-          type="file"
-          accept=".png, .PNG, .jpg, .JPG, .jpeg, .JPEG, image/png, image/jpeg"
-          required
-          class="mt-3 block w-full cursor-pointer rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 file:mr-4 file:cursor-pointer file:border-0 file:bg-cyan-500 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-950 hover:border-slate-400 dark:hover:border-slate-500 focus:outline-none transition-colors"
-        >
-        <p class="mt-3 text-xs uppercase tracking-[0.25em] text-slate-500">Accepted types: .png, .jpg, .jpeg</p>
-        <button
-          type="submit"
-          id="submit-btn"
-          class="mt-6 inline-flex items-center justify-center rounded-xl border border-cyan-400 bg-cyan-500 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Extract Text
-        </button>
-      </form>
+<div class="max-w-3xl mx-auto space-y-8 mb-16">
+  <form action="{{ url_for('ocr.extract_text') }}" method="post" enctype="multipart/form-data"
+    class="rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-950/60 p-8 sm:p-12 shadow-sm backdrop-blur-xl transition-all hover:shadow-lg relative overflow-hidden">
+    
+    <!-- Decorative gradient background element -->
+    <div class="absolute -top-24 -right-24 w-48 h-48 bg-violet-400/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-fuchsia-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="text-center mb-10 relative z-10">
+      <div class="mx-auto inline-flex items-center justify-center w-20 h-20 rounded-full bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400 mb-6 shadow-inner">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </div>
+      <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Upload your Image</h2>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Select an image file (.png, .jpg, .jpeg)</p>
     </div>
 
-    <script>
-      const fileInput = document.getElementById('image');
-      const submitBtn = document.getElementById('submit-btn');
-      const allowedExtensions = ['png', 'jpg', 'jpeg'];
-
-      fileInput.addEventListener('change', function() {
-        if (this.files && this.files.length > 0) {
-          const fileName = this.files[0].name;
-          const ext = fileName.split('.').pop().toLowerCase();
-          if (!allowedExtensions.includes(ext)) {
-            showErrorModal('Format tidak didukung! Tolong masukkan file gambar (.png, .jpg, .jpeg)');
-            this.value = ''; // clear the input
-            submitBtn.disabled = true;
-          } else {
-            submitBtn.disabled = false;
-          }
-        }
-      });
-
-      const form = document.querySelector('form');
-      if (form) {
-        form.addEventListener('submit', function() {
-          submitBtn.disabled = true;
-          submitBtn.innerHTML = `
-            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-slate-950" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Extracting...
-          `;
-        });
-      }
-    </script>
-
-    <aside class="rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/70 p-6 transition-colors">
-      <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Processing Phase</p>
-      <div class="mt-4 space-y-4 text-sm leading-6 text-slate-600 dark:text-slate-400">
-        <div class="rounded-xl border border-slate-300 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 p-4 transition-colors">
-          <h3 class="font-semibold text-slate-900 dark:text-slate-100">1. Verification</h3>
-          <p class="mt-2">The system checks if the uploaded file is a valid image.</p>
-        </div>
-        <div class="rounded-xl border border-slate-300 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 p-4 transition-colors">
-          <h3 class="font-semibold text-slate-900 dark:text-slate-100">2. Extraction</h3>
-          <p class="mt-2">Using Tesseract OCR, text is analyzed and read from the image pixels.</p>
-        </div>
-        <div class="rounded-xl border border-slate-300 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 p-4 transition-colors">
-          <h3 class="font-semibold text-slate-900 dark:text-slate-100">3. Result</h3>
-          <p class="mt-2">The extracted text will be displayed so you can copy it to your clipboard.</p>
-        </div>
+    <div class="relative group z-10">
+      <input id="image" name="image" type="file" accept=".png, .PNG, .jpg, .JPG, .jpeg, .JPEG, image/png, image/jpeg" required
+        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
+      <div class="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 px-6 py-10 text-center transition-all group-hover:border-violet-400 dark:group-hover:border-violet-500 group-hover:bg-violet-50/50 dark:group-hover:bg-violet-900/20">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-400 group-hover:text-violet-500 transition-colors mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <span class="text-base font-medium text-slate-600 dark:text-slate-300 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors" id="dropzone-text">Choose an image or drag & drop here</span>
       </div>
-    </aside>
+    </div>
+    
+    <div class="mt-4 text-center min-h-[1.5rem] z-10 relative">
+      <p id="file-name" class="text-sm font-medium text-slate-600 dark:text-slate-400"></p>
+    </div>
+
+    <div class="mt-10 text-center z-10 relative">
+      <button type="submit" id="submit-btn" disabled
+        class="inline-flex w-full sm:w-auto items-center justify-center rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-600 px-10 py-4 text-base font-bold text-white shadow-lg shadow-violet-500/30 transition-all hover:scale-105 hover:shadow-violet-500/50 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none">
+        Extract Text Now
+        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+  </form>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-12">
+    <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 p-6 text-center shadow-sm backdrop-blur-sm">
+      <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 mb-4 font-bold">1</div>
+      <h3 class="font-bold text-slate-900 dark:text-slate-100">Verification</h3>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">The system checks if the uploaded file is a valid image.</p>
+    </div>
+    <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 p-6 text-center shadow-sm backdrop-blur-sm">
+      <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 mb-4 font-bold">2</div>
+      <h3 class="font-bold text-slate-900 dark:text-slate-100">Extraction</h3>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Text is analyzed and read from the image pixels.</p>
+    </div>
+    <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 p-6 text-center shadow-sm backdrop-blur-sm">
+      <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-violet-100 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 mb-4 font-bold">3</div>
+      <h3 class="font-bold text-slate-900 dark:text-slate-100">Result</h3>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">The extracted text will be displayed so you can copy it.</p>
+    </div>
   </div>
+</div>
+
+<script>
+  const fileInput = document.getElementById('image');
+  const fileNameDisplay = document.getElementById('file-name');
+  const submitBtn = document.getElementById('submit-btn');
+  const dropzoneText = document.getElementById('dropzone-text');
+  const allowedExtensions = ['png', 'jpg', 'jpeg'];
+
+  fileInput.addEventListener('change', function () {
+    if (this.files && this.files.length > 0) {
+      const fileName = this.files[0].name;
+      const ext = fileName.split('.').pop().toLowerCase();
+      if (!allowedExtensions.includes(ext)) {
+        showErrorModal('Format tidak didukung! Tolong masukkan file gambar (.png, .jpg, .jpeg)');
+        this.value = ''; 
+        submitBtn.disabled = true;
+        fileNameDisplay.innerHTML = `<span class="text-rose-500 font-medium">Invalid file selected</span>`;
+        dropzoneText.innerText = 'Choose an image or drag & drop here';
+      } else {
+        submitBtn.disabled = false;
+        fileNameDisplay.innerHTML = `<span class="text-violet-600 dark:text-violet-400 font-medium">${fileName}</span> ready to extract`;
+        dropzoneText.innerText = '1 image selected';
+      }
+    } else {
+      submitBtn.disabled = true;
+      fileNameDisplay.innerHTML = '';
+      dropzoneText.innerText = 'Choose an image or drag & drop here';
+    }
+  });
+
+  const form = document.querySelector('form');
+  if (form) {
+    form.addEventListener('submit', function () {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `
+          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Extracting...
+        `;
+    });
+  }
+</script>
 {% endblock %}

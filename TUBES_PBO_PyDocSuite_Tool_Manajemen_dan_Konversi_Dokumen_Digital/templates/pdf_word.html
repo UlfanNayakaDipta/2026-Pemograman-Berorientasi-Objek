@@ -1,110 +1,131 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div class="mb-8 mt-2">
-    <h1 class="text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 sm:text-4xl">PDF to Word Converter</h1>
-    <p class="mt-3 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-400">
-      Local document conversion using pdf2docx for accurate offline PDF to Docx extraction.
-    </p>
-  </div>
-  <div class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-    <div class="space-y-6">
-      <section class="rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/70 p-6 transition-colors">
-        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Upload Phase</p>
-        <h2 class="mt-3 text-2xl font-semibold text-slate-900 dark:text-slate-100">Choose a PDF document</h2>
-        <p class="mt-3 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-400">
-          Upload a .pdf file and convert it locally into a Microsoft Word (.docx) document.
-        </p>
-      </section>
+<div class="mb-10 mt-4 text-center">
+  <h1 class="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50 sm:text-5xl">PDF to Word Converter</h1>
+  <p class="mt-4 mx-auto max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-400">
+    Local document conversion using pdf2docx for accurate offline PDF to Docx extraction.
+  </p>
+</div>
 
-      <form action="{{ url_for('pdf_word.convert_pdf_to_word') }}" method="post" enctype="multipart/form-data" class="rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/70 p-6 transition-colors">
-        <label for="document" class="block text-sm font-medium text-slate-700 dark:text-slate-200">PDF File</label>
-        <input
-          id="document"
-          name="document"
-          type="file"
-          accept=".pdf, .PDF, application/pdf"
-          multiple
-          required
-          class="mt-3 block w-full cursor-pointer rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-4 py-3 text-sm text-slate-700 dark:text-slate-300 file:mr-4 file:cursor-pointer file:border-0 file:bg-cyan-500 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-slate-950 hover:border-slate-400 dark:hover:border-slate-500 focus:outline-none transition-colors"
-        >
-        <p id="file-name" class="mt-3 text-xs uppercase tracking-[0.25em] text-slate-500">Accepted types: .pdf | Max size: 25 MB</p>
-        <button
-          type="submit"
-          id="submit-btn"
-          class="mt-6 inline-flex items-center justify-center rounded-xl border border-cyan-400 bg-cyan-500 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Convert to Word
-        </button>
-      </form>
+<div class="max-w-3xl mx-auto space-y-8 mb-16">
+  <form action="{{ url_for('pdf_word.convert_pdf_to_word') }}" method="post" enctype="multipart/form-data"
+    class="rounded-[2rem] border border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-950/60 p-8 sm:p-12 shadow-sm backdrop-blur-xl transition-all hover:shadow-lg relative overflow-hidden">
+    
+    <!-- Decorative gradient background element -->
+    <div class="absolute -top-24 -right-24 w-48 h-48 bg-emerald-400/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-teal-500/20 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="text-center mb-10 relative z-10">
+      <div class="mx-auto inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 mb-6 shadow-inner">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      </div>
+      <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Upload your PDF Document</h2>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Select one or multiple files (.pdf) up to 25 MB</p>
     </div>
 
-    <script>
-      const fileInput = document.getElementById('document');
-      const fileNameDisplay = document.getElementById('file-name');
-      const submitBtn = document.getElementById('submit-btn');
-
-      fileInput.addEventListener('change', function() {
-        if (this.files && this.files.length > 0) {
-          const allowedExtensions = ['pdf'];
-          let allValid = true;
-          
-          for (let i = 0; i < this.files.length; i++) {
-            const ext = this.files[i].name.split('.').pop().toLowerCase();
-            if (!allowedExtensions.includes(ext)) {
-              allValid = false;
-              break;
-            }
-          }
-
-          if (!allValid) {
-            showErrorModal('Format tidak didukung! Tolong masukkan hanya file PDF (.pdf)');
-            this.value = ''; // clear the input
-            submitBtn.disabled = true;
-            fileNameDisplay.innerHTML = `<span class="text-rose-500 font-medium">Invalid files selected</span>`;
-          } else {
-            submitBtn.disabled = false;
-            
-            if (this.files.length === 1) {
-              fileNameDisplay.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400 font-medium">${this.files[0].name}</span> ready to convert`;
-            } else {
-              fileNameDisplay.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400 font-medium">${this.files.length} files</span> ready to convert`;
-            }
-          }
-        }
-      });
-
-      const form = document.querySelector('form');
-      if (form) {
-        form.addEventListener('submit', function() {
-          submitBtn.disabled = true;
-          submitBtn.innerHTML = `
-            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-slate-950" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Converting...
-          `;
-        });
-      }
-    </script>
-
-    <aside class="rounded-2xl border border-slate-300 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/70 p-6 transition-colors">
-      <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Processing Phase</p>
-      <div class="mt-4 space-y-4 text-sm leading-6 text-slate-600 dark:text-slate-400">
-        <div class="rounded-xl border border-slate-300 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 p-4 transition-colors">
-          <h3 class="font-semibold text-slate-900 dark:text-slate-100">1. Validation</h3>
-          <p class="mt-2">The server verifies the file type, name, and size before conversion begins.</p>
-        </div>
-        <div class="rounded-xl border border-slate-300 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 p-4 transition-colors">
-          <h3 class="font-semibold text-slate-900 dark:text-slate-100">2. Conversion</h3>
-          <p class="mt-2">Uses pdf2docx to extract text, tables, and formatting from the PDF into a Word document natively without internet.</p>
-        </div>
-        <div class="rounded-xl border border-slate-300 dark:border-slate-800 bg-white/60 dark:bg-slate-900/60 p-4 transition-colors">
-          <h3 class="font-semibold text-slate-900 dark:text-slate-100">3. Result</h3>
-          <p class="mt-2">A result page appears with a download action and a reset action for the next file.</p>
-        </div>
+    <div class="relative group z-10">
+      <input id="document" name="document" type="file" accept=".pdf, .PDF, application/pdf" multiple required
+        class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
+      <div class="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 px-6 py-10 text-center transition-all group-hover:border-emerald-400 dark:group-hover:border-emerald-500 group-hover:bg-emerald-50/50 dark:group-hover:bg-emerald-900/20">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-slate-400 group-hover:text-emerald-500 transition-colors mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+        <span class="text-base font-medium text-slate-600 dark:text-slate-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors" id="dropzone-text">Choose files or drag & drop here</span>
       </div>
-    </aside>
+    </div>
+    
+    <div class="mt-4 text-center min-h-[1.5rem] z-10 relative">
+      <p id="file-name" class="text-sm font-medium text-slate-600 dark:text-slate-400"></p>
+    </div>
+
+    <div class="mt-10 text-center z-10 relative">
+      <button type="submit" id="submit-btn" disabled
+        class="inline-flex w-full sm:w-auto items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-teal-600 px-10 py-4 text-base font-bold text-white shadow-lg shadow-emerald-500/30 transition-all hover:scale-105 hover:shadow-emerald-500/50 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-none">
+        Convert to Word Now
+        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    </div>
+  </form>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-12">
+    <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 p-6 text-center shadow-sm backdrop-blur-sm">
+      <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 mb-4 font-bold">1</div>
+      <h3 class="font-bold text-slate-900 dark:text-slate-100">Validation</h3>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Securely verifies your file before processing.</p>
+    </div>
+    <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 p-6 text-center shadow-sm backdrop-blur-sm">
+      <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 mb-4 font-bold">2</div>
+      <h3 class="font-bold text-slate-900 dark:text-slate-100">Conversion</h3>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Native PDF to Word extraction offline.</p>
+    </div>
+    <div class="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/40 dark:bg-slate-900/40 p-6 text-center shadow-sm backdrop-blur-sm">
+      <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 mb-4 font-bold">3</div>
+      <h3 class="font-bold text-slate-900 dark:text-slate-100">Result</h3>
+      <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Download instantly in high quality.</p>
+    </div>
   </div>
+</div>
+
+<script>
+  const fileInput = document.getElementById('document');
+  const fileNameDisplay = document.getElementById('file-name');
+  const submitBtn = document.getElementById('submit-btn');
+  const dropzoneText = document.getElementById('dropzone-text');
+
+  fileInput.addEventListener('change', function () {
+    if (this.files && this.files.length > 0) {
+      const allowedExtensions = ['pdf'];
+      let allValid = true;
+
+      for (let i = 0; i < this.files.length; i++) {
+        const ext = this.files[i].name.split('.').pop().toLowerCase();
+        if (!allowedExtensions.includes(ext)) {
+          allValid = false;
+          break;
+        }
+      }
+
+      if (!allValid) {
+        showErrorModal('Format tidak didukung! Tolong masukkan hanya file PDF (.pdf)');
+        this.value = ''; 
+        submitBtn.disabled = true;
+        fileNameDisplay.innerHTML = `<span class="text-rose-500 font-medium">Invalid files selected</span>`;
+        dropzoneText.innerText = 'Choose files or drag & drop here';
+      } else {
+        submitBtn.disabled = false;
+
+        if (this.files.length === 1) {
+          fileNameDisplay.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400 font-medium">${this.files[0].name}</span> ready to convert`;
+          dropzoneText.innerText = '1 file selected';
+        } else {
+          fileNameDisplay.innerHTML = `<span class="text-emerald-600 dark:text-emerald-400 font-medium">${this.files.length} files</span> ready to convert`;
+          dropzoneText.innerText = `${this.files.length} files selected`;
+        }
+      }
+    } else {
+      submitBtn.disabled = true;
+      fileNameDisplay.innerHTML = '';
+      dropzoneText.innerText = 'Choose files or drag & drop here';
+    }
+  });
+
+  const form = document.querySelector('form');
+  if (form) {
+    form.addEventListener('submit', function () {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `
+          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          Converting...
+        `;
+    });
+  }
+</script>
 {% endblock %}
